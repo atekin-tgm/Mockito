@@ -5,6 +5,7 @@ import static org.mockito.Matchers.*;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 /* 	Wir lernen Mockito!
  * 	@author		Abdurrahim Burak TEKIN 
@@ -15,6 +16,8 @@ public class MockitoTest {
 
 	LinkedList mockedList;
 	
+	
+	//Let's verify some behaviour
 	@Test
 	public void testBehaviour() {
 		//Let's import Mockito statically so that the code looks clearer
@@ -32,6 +35,7 @@ public class MockitoTest {
 		 verify(mockedList).clear();
 	}
 	
+	//How about some stubbing?
 	@Test(expected=RuntimeException.class)
 	public void testStubbing() {
 		//You can mock concrete classes, not just interfaces
@@ -56,6 +60,7 @@ public class MockitoTest {
 		 verify(mockedList).get(0);
 	}
 	
+	//Argument matchers
 	@Test
 	public void testArgumentMather() {
 		
@@ -74,6 +79,7 @@ public class MockitoTest {
 		 verify(mockedList).get(anyInt());
 	}
 	
+	//Verifying exact number of invocations /at least x / never
 	@Test
 	public void testNumberOfInvocations() {
 		//using mock
@@ -101,5 +107,56 @@ public class MockitoTest {
 		 verify(mockedList, atLeastOnce()).add("three times");
 		 verify(mockedList, atLeast(2)).add("twice");
 		 verify(mockedList, atMost(5)).add("three times");
+	}
+	
+	//Stubbing void methods with exceptions
+	@Test
+	public void testStubbingWithExceptions() {
+		//RuntimeException wenn "mockedList" -> leer!
+		doThrow(new RuntimeException()).when(mockedList).clear();
+
+		   //following throws RuntimeException:
+		   mockedList.clear();
+	}
+	
+	//Verification in order
+	@Test
+	public void testOrder() {
+		// A. Single mock whose methods must be invoked in a particular order
+		 List singleMock = mock(List.class);
+
+		 //using a single mock
+		 singleMock.add("was added first");
+		 singleMock.add("was added second");
+
+		 //create an inOrder verifier for a single mock
+		 InOrder inOrder = inOrder(singleMock);
+
+		 //following will make sure that add is first called with "was added first, then with "was added second"
+		 inOrder.verify(singleMock).add("was added first");
+		 inOrder.verify(singleMock).add("was added second");
+
+		 // B. Multiple mocks that must be used in a particular order
+		 List firstMock = mock(List.class);
+		 List secondMock = mock(List.class);
+
+		 //using mocks
+		 firstMock.add("was called first");
+		 secondMock.add("was called second");
+
+		 //create inOrder object passing any mocks that need to be verified in order
+		 InOrder inOrder1 = inOrder(firstMock, secondMock);
+
+		 //following will make sure that firstMock was called before secondMock
+		 inOrder1.verify(firstMock).add("was called first");
+		 inOrder1.verify(secondMock).add("was called second");
+
+		 // Oh, and A + B can be mixed together at will
+	}
+	
+	//Making sure interactions never happened on mock
+	@Test
+	public void testInteractionsOnMock() {
+		
 	}
 }
